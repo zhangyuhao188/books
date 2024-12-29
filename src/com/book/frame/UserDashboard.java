@@ -98,18 +98,34 @@ public class UserDashboard extends JFrame {
         String keyword = JOptionPane.showInputDialog(this, "请输入图书名称或作者关键字：");
         if (keyword != null && !keyword.trim().isEmpty()) {
             try (Connection conn = DatabaseUtils.getConnection()) {
-                String query = "SELECT * FROM books WHERE name LIKE ? OR author LIKE ?";
+                // 1. 定义 SQL 查询语句
+                // 使用 LIKE 关键字进行模糊查询，以查找与用户输入的关键字匹配的图书信息
+                // 这里使用了两个占位符?，分别用于接收用户输入的关键字
+                // 查询语句将在 books 表中查找满足以下条件的记录：
+                // 要么 title 列包含用户输入的关键字，要么 author 列包含用户输入的关键字
+                String query = "SELECT * FROM books WHERE title LIKE ? OR author LIKE ?";
+                // 2. 准备 SQL 语句
+                // 使用 conn.prepareStatement(query) 方法将 SQL 语句预编译为 PreparedStatement 对象
+                // 预编译的好处是可以提高性能，同时防止 SQL 注入攻击
                 PreparedStatement ps = conn.prepareStatement(query);
+                // 3. 设置占位符的值
+                // 使用 ps.setString 方法将用户输入的关键字添加到 SQL 语句的占位符中
+                // 这里使用了 LIKE 关键字，所以需要在关键字前后添加 % 符号
+                // % 表示匹配零个或多个字符，例如 %keyword% 可以匹配包含 keyword 的任何字符串
+                // 第一个占位符设置为 "%keyword%"
                 ps.setString(1, "%" + keyword + "%");
                 ps.setString(2, "%" + keyword + "%");
+                // 4. 执行查询操作
+                // 使用 ps.executeQuery() 方法执行查询操作，并将结果存储在 ResultSet 对象中
+                // ResultSet 对象包含了满足查询条件的所有记录的信息
                 ResultSet rs = ps.executeQuery();
 
                 StringBuilder results = new StringBuilder("查询结果：\n");
                 while (rs.next()) {
-                    results.append("ID: ").append(rs.getInt("id"))
-                            .append(", 名称: ").append(rs.getString("name"))
+                    results.append("ID: ").append(rs.getInt("book_id"))
+                            .append(", 名称: ").append(rs.getString("title"))
                             .append(", 作者: ").append(rs.getString("author"))
-                            .append(", 可借数量: ").append(rs.getInt("available_copies"))
+                            .append(", 可借数量: ").append(rs.getInt("quantity"))
                             .append("\n");
                 }
                 JOptionPane.showMessageDialog(this, results.toString());

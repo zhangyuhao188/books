@@ -8,15 +8,16 @@ import java.sql.*;
 
 public class AdminDashboard extends JFrame {
 
-    private String currentUserId;
+    private String currentUserId;//声明了一个私有字符串变量 currentUserId，用于存储当前用户的 ID。
 
-    public AdminDashboard(String userId) {
-        this.currentUserId = userId;
+    public AdminDashboard(String userId) {//定义了一个构造函数，接收一个 userId 作为参数。
+        this.currentUserId = userId;//将传入的 userId 赋值给 currentUserId 变量。
+
 
         // 设置窗口属性
         setTitle("图书管理系统 - 管理员界面");
         setSize(600, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//设置当用户关闭窗口时，程序终止运行。
 
         // 标题
         JLabel titleLabel = new JLabel("图书管理系统 - 管理员操作面板");
@@ -100,15 +101,23 @@ public class AdminDashboard extends JFrame {
         int result = JOptionPane.showConfirmDialog(this, panel, "查询借书和还书记录", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             String userId = userIdField.getText();
-            String bookIdOrKeyword = bookIdField.getText();
+            String bookIdOrKeyword = bookIdField.getText();//获取用户输入的 userId 和 bookIdOrKeyword。
 
             if (!userId.isEmpty()) {
                 // 根据用户 ID 查询借阅和还书记录
-                try (Connection conn = DatabaseUtils.getConnection()) {
+                try (Connection conn = DatabaseUtils.getConnection()) {   //使用 DatabaseUtils.getConnection() 获取数据库连接。
                     String query = "SELECT * FROM borrow_records WHERE user_id = ?";
+                    //定义一个 SQL 查询语句字符串 query。
+                    //SELECT * FROM borrow_records：表示从名为 borrow_records 的数据库表中选择所有列的数据。
+                    //WHERE user_id =?：这是一个条件子句，? 是一个占位符，用于后续设置具体的 user_id 值
                     PreparedStatement ps = conn.prepareStatement(query);
+                    //使用 conn.prepareStatement(query) 方法将 SQL 查询语句 query 转换为 PreparedStatement 对象 ps。
+                    //PreparedStatement 是预编译的 SQL 语句对象
                     ps.setString(1, userId);
+                    //使用 setString 方法将第一个占位符（在 SQL 中是 ?）的值设置为 userId。
+                    //1 表示占位符的索引（从 1 开始），这里将 userId 作为参数传递给第一个占位符。
                     ResultSet rs = ps.executeQuery();
+                    //执行查询操作，将结果存储在 ResultSet 中。
 
                     StringBuilder results = new StringBuilder("借阅和还书记录：\n");
                     while (rs.next()) {
@@ -124,6 +133,10 @@ public class AdminDashboard extends JFrame {
                     ex.printStackTrace();
                 }
             }
+            //这是一个异常处理块，用于捕获可能发生的 SQLException 和 ClassNotFoundException。
+            //SQLException：当执行 SQL 操作（如连接数据库、执行查询、更新等）时，如果发生错误，可能会抛出 SQLException。
+            //ClassNotFoundException：在加载数据库驱动或使用一些依赖类时，如果找不到相应的类，会抛出 ClassNotFoundException。
+            //ex.printStackTrace();：打印异常的堆栈跟踪信息，这有助于在调试时查找错误发生的位置和原因。
 
             if (!bookIdOrKeyword.isEmpty()) {
                 // 根据图书 ID 或名称关键字查询借阅情况
@@ -183,6 +196,7 @@ public class AdminDashboard extends JFrame {
         panel.add(locationField);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "添加书籍", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        // 显示一个确认对话框，其中包含创建的面板，对话框标题为 "添加书籍"，并提供 OK 和 CANCEL 选项
         if (result == JOptionPane.OK_OPTION) {
             String title = titleField.getText();
             String author = authorField.getText();
@@ -191,10 +205,13 @@ public class AdminDashboard extends JFrame {
             String quantityStr = quantityField.getText();
             String location = locationField.getText();
 
-            try (Connection conn = DatabaseUtils.getConnection()) {
+            try (Connection conn = DatabaseUtils.getConnection()) {// SQL 插入语句，使用占位符（?）防止 SQL 注入
                 String query = "INSERT INTO books (title, author, publication_date, isbn, quantity, location) VALUES (?, ?, ?, ?, ?, ?)";
                 PreparedStatement ps = conn.prepareStatement(query);
                 ps.setString(1, title);
+                // 1. ps.setString(1, title);
+                // 将变量 title 的值设置为 PreparedStatement 的第一个参数（占位符）的值。
+                // 这里的 1 表示第一个参数的索引（从 1 开始计数），title 是一个字符串，会被插入或更新到 SQL 语句中相应位置。
                 ps.setString(2, author);
                 ps.setDate(3, Date.valueOf(pubDate));
                 ps.setString(4, isbn);
@@ -212,17 +229,17 @@ public class AdminDashboard extends JFrame {
 
     private void updateBookInfo() {
         String bookId = JOptionPane.showInputDialog(this, "请输入书籍ID：");
-        if (bookId == null || bookId.isEmpty()) {
+        if (bookId == null || bookId.isEmpty()) {// 若用户取消输入或输入为空，则直接返回，不执行更新操作
             return;
         }
 
-        try (Connection conn = DatabaseUtils.getConnection()) {
+        try (Connection conn = DatabaseUtils.getConnection()) {// SQL 查询语句，根据输入的书籍 ID 查找书籍信息
             String selectQuery = "SELECT * FROM books WHERE book_id = ?";
             PreparedStatement selectPs = conn.prepareStatement(selectQuery);
             selectPs.setInt(1, Integer.parseInt(bookId));
             ResultSet rs = selectPs.executeQuery();
 
-            if (rs.next()) {
+            if (rs.next()) {// 获取书籍的当前信息
                 String currentTitle = rs.getString("title");
                 String currentAuthor = rs.getString("author");
                 String currentPubDate = rs.getString("publication_date");
@@ -230,6 +247,7 @@ public class AdminDashboard extends JFrame {
                 int currentQuantity = rs.getInt("quantity");
                 String currentLocation = rs.getString("location");
 
+                // 创建一个面板用于更新书籍信息
                 JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
                 JTextField titleField = new JTextField(currentTitle);
                 JTextField authorField = new JTextField(currentAuthor);
@@ -238,6 +256,7 @@ public class AdminDashboard extends JFrame {
                 JTextField quantityField = new JTextField(String.valueOf(currentQuantity));
                 JTextField locationField = new JTextField(currentLocation);
 
+                // 将标签和相应的文本输入框添加到面板中，用于更新书籍信息
                 panel.add(new JLabel("书名："));
                 panel.add(titleField);
                 panel.add(new JLabel("作者名："));
@@ -253,6 +272,7 @@ public class AdminDashboard extends JFrame {
 
                 int result = JOptionPane.showConfirmDialog(this, panel, "更新书籍信息", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (result == JOptionPane.OK_OPTION) {
+                    // 获取用户更新后的信息
                     String newTitle = titleField.getText();
                     String newAuthor = authorField.getText();
                     String newPubDate = pubDateField.getText();
@@ -303,8 +323,9 @@ public class AdminDashboard extends JFrame {
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
 
-            StringBuilder results = new StringBuilder("查询结果：\n");
+            StringBuilder results = new StringBuilder("查询结果：\n");// 使用 StringBuilder 构建查询结果的字符串
             while (rs.next()) {
+                // 遍历结果集，将每条记录的信息添加到 StringBuilder 中
                 results.append("ID: ").append(rs.getInt("book_id"))
                         .append(", 名称: ").append(rs.getString("title"))
                         .append(", 作者: ").append(rs.getString("author"))
@@ -348,18 +369,20 @@ public class AdminDashboard extends JFrame {
             selectPs.setString(1, currentUserId);
             ResultSet rs = selectPs.executeQuery();
 
-            if (rs.next()) {
+            if (rs.next()) {// 获取用户的当前信息
                 String currentPassword = rs.getString("password");
                 String currentGender = rs.getString("gender");
                 String currentPhone = rs.getString("phone");
                 String currentEmail = rs.getString("email");
 
+                // 创建一个面板用于更新用户信息
                 JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
                 JTextField passwordField = new JTextField(currentPassword);
                 JTextField genderField = new JTextField(currentGender);
                 JTextField phoneField = new JTextField(currentPhone);
                 JTextField emailField = new JTextField(currentEmail);
 
+                // 将标签和相应的文本输入框添加到面板中，用于更新用户信息
                 panel.add(new JLabel("密码："));
                 panel.add(passwordField);
                 panel.add(new JLabel("性别："));
@@ -371,6 +394,7 @@ public class AdminDashboard extends JFrame {
 
                 int result = JOptionPane.showConfirmDialog(this, panel, "修改用户信息", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (result == JOptionPane.OK_OPTION) {
+                    // 获取用户更新后的信息
                     String newPassword = passwordField.getText();
                     String newGender = genderField.getText();
                     String newPhone = phoneField.getText();
@@ -398,7 +422,7 @@ public class AdminDashboard extends JFrame {
 
     private void logout() {
         JOptionPane.showMessageDialog(this, "已成功退出登录！");
-        new LoginFrame();
+        new LoginFrame();// 创建一个新的 LoginFrame 对象，可能用于重新登录
         dispose();
     }
 }

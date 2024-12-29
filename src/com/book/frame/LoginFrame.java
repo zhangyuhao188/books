@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class LoginFrame extends JFrame {
+    // 成员变量，用于存储用户输入的用户 ID 和密码
     private JTextField userIdField;
     private JPasswordField passwordField;
     private JButton loginButton, registerButton;
@@ -162,6 +163,7 @@ public class LoginFrame extends JFrame {
     }
 
     public static void main(String[] args) {
+        //使用 SwingUtilities.invokeLater 创建和显示 GUI 组件
         SwingUtilities.invokeLater(LoginFrame::new);
     }
 }
